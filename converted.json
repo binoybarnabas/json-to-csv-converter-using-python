@@ -3,5 +3,10 @@
         "binoy",
         21,
         false
+    ],
+    "student2": [
+        "abc",
+        22,
+        true
     ]
 }

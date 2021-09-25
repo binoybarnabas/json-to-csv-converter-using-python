@@ -1,8 +1,10 @@
 import json
 import csv
+import pandas as pd
 
 dict = {
-    'student1' : ['binoy',21,False]
+    'student1' : ['binoy',21,False],
+    'student2' : ['abc',22,True]
 }
 
 print(dict['student1'][0]) # just checking
@@ -19,28 +21,7 @@ json_file.write(json_obj)                     #writing into the json file(conver
 
 json_file.close()
 
-with open('converted.json') as json_file:     # Opening JSON file and loading the data into the variable
-    data = json.load(json_file)
+#using panda library for json to csv conversion
 
-student_data = data['student1']
-
-# print(student_data)
-
-data_file = open('converted.csv', 'r+')  # now we will open a file for writing
-csv_writer = csv.writer(data_file)      # create the csv writer object
-
-count = 0     # Counter variable used for writing headers to the CSV file
- 
-for student in student_data:
-    if count == 0:
- 
-        # Writing headers of CSV file
-        header = student.keys()
-        csv_writer.writerow(header)
-        count += 1
- 
-    # Writing data of CSV file
-    csv_writer.writerow(student.values())
- 
-data_file.close()
-
+data_file = pd.read_json(r'converted.json')
+data_file.to_csv(r'converted.csv',index = None)
