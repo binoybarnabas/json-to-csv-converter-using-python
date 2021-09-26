@@ -1,6 +1,7 @@
 import json
 import csv
-import pandas as pd
+import pandas 
+from copy import deepcopy
 
 dict = {
 
@@ -97,9 +98,9 @@ dict = {
 
 
 
-json_obj = json.dumps(dict,indent = 4)      # parsing into json object
+json_obj = json.dumps(dict,indent = 4)        #parsing into json object
 
-# print(json_obj)    #checking
+# print(json_obj)                             #checking
 
 json_file = open('converted.json','r+')       #opening and creating the json file
 
@@ -107,86 +108,58 @@ json_file.write(json_obj)                     #writing into the json file(conver
 
 json_file.close()
 
-#using panda library for json to csv conversion
 
-data_file_jsonObj = open('converted.json','r+')
 
-data_files = json.load(data_file_jsonObj)
+def cross_join(left, right):
+    new_rows = [] if right else left
+    for left_row in left:
+        for right_row in right:
+            temp_row = deepcopy(left_row)
+            for key, value in right_row.items():
+                temp_row[key] = value
+            new_rows.append(deepcopy(temp_row))
+    return new_rows
 
-csv_file = csv.writer(open("converted.csv","r+"))
 
-# Write CSV Header
 
-csv_file.writerow([
-"crawl_count",
-"attempt_count", 
-"crawl_start_time",
- "tenant_name", 
- "draft_status",
- "scraped_count",
- "download_delay",
- "hier",
- "website_name",
- "S3_url",
- "is_stop_site",
- "spider_status",
- "crawl_end_time",
- "is_error",
- "is_refused",
- "website_url",
- "upload_type",
- "project_id",
- "id",
- "node_count",
- "site_id",
- "type",
- "project_name",
- "scraping_time",
- "uploader_time",
- "msg",
- "count",
- "endpage"]
- )
-  
-#print(data_files)
+def flatten_list(data):
+    for elem in data:
+        if isinstance(elem, list):
+            yield from flatten_list(elem)
+        else:
+            yield elem
 
-#for data_file in data_files:
-   # print(data_file)
-   # print()
 
-for data_file in data_files:
-    for i in range(0,len(data_file)):
-        csv_file.writerow(
-            [
-            data_file[i]["items"]["crawl_count"],
-            data_file[i]["items"]["attempt_count"],
-            data_file[i]["items"]["crawl_start_time"],
-            data_file[i]["items"]["tenant_name"],
-            data_file[i]["items"]["draft_status"],
-            data_file[i]["items"]["scraped_count"],
-            data_file[i]["items"]["download_delay"],
-            data_file[i]["items"]["hier"],
-            data_file[i]["items"]["website_name"],
-            data_file[i]["items"]["S3_url"],
-            data_file[i]["items"]["is_stop_site"],
-            data_file[i]["items"]["spider_status"],
-            data_file[i]["items"]["crawl_end_time"],
-            data_file[i]["items"]["is_error"],
-            data_file[i]["items"]["is_refused"],
-            data_file[i]["items"]["website_url"],
-            data_file[i]["items"]["upload_type"],
-            data_file[i]["items"]["project_id"],
-            data_file[i]["items"]["id"],
-            data_file[i]["items"]["node_count"],
-            data_file[i]["items"]["site_id"],
-            data_file[i]["items"]["type"],
-            data_file[i]["items"]["project_name"],
-            data_file[i]["items"]["scraping_time"],
-            data_file[i]["items"]["uploader_time"],
-            data_file["msg"],
-            data_file["count"],
-            data_file["endpage"]
-        ]
-    )
+
+def json_to_dataframe(data_in):
+    def flatten_json(data, prev_heading=''):
+        if isinstance(data, dict):
+            rows = [{}]
+            for key, value in data.items():
+                rows = cross_join(rows, flatten_json(value, prev_heading + '.' + key))
+        elif isinstance(data, list):
+            rows = []
+            for i in range(len(data)):
+                [rows.append(elem) for elem in flatten_list(flatten_json(data[i], prev_heading))]
+        else:
+            rows = [{prev_heading[1:]: data}]
+        return rows
+
+    return pandas.DataFrame(flatten_json(data_in))
+
+
+
+if __name__ == '__main__':
+
+    #using panda library for json to csv conversion
+
+    data_file_jsonObj = open('converted.json','r+')
+    data_files = json.load(data_file_jsonObj)
+
+    csv_data = json_to_dataframe(data_files)
+
+    csv_file = open("converted.csv","r+")
+
+    csv_file.write(csv_data)
 
 
