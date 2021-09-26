@@ -1,4 +1,1 @@
-student1,student2
-binoy,abc
-21,22
-False,True
+crawl_count,attempt_count,crawl_start_time,tenant_name,draft_status,scraped_count,download_delay,hier,website_name,S3_url,is_stop_site,spider_status,crawl_end_time,is_error,is_refused,website_url,upload_type,project_id,id,node_count,site_id,type,project_name,scraping_time,uploader_time,msg,count,endpage
